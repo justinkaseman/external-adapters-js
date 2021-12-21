@@ -9,6 +9,14 @@ export const inputParameters: InputParameters = {
   quote: ['quote', 'to', 'market'],
 }
 
+export interface ResponseSchema {
+  disclaimer: string
+  license: string
+  timestamp: number
+  base: string
+  rates: { [key: string]: number }
+}
+
 export const execute: ExecuteWithConfig<Config> = async (request, _, config) => {
   const validator = new Validator(request, inputParameters)
   if (validator.error) throw validator.error
@@ -29,8 +37,8 @@ export const execute: ExecuteWithConfig<Config> = async (request, _, config) => 
     url,
   }
 
-  const response = await Requester.request(options)
-  response.data.result = Requester.validateResultNumber(response.data, ['rates', to])
+  const response = await Requester.request<ResponseSchema>(options)
+  const result = Requester.validateResultNumber(response.data, ['rates', to])
 
-  return Requester.success(jobRunID, response, config.verbose)
+  return Requester.success(jobRunID, Requester.withResult(response, result), config.verbose)
 }
