@@ -5,7 +5,7 @@ export const NAME = 'trueusd'
 
 export const supportedEndpoints = ['trueusd']
 
-const customError = (data: any) => data.Response === 'Error'
+const customError = (data: ResponseSchema) => !data.success
 
 export const inputParameters: InputParameters = {
   resultPath: {
