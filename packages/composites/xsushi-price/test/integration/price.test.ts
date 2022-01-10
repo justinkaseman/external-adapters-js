@@ -1,10 +1,11 @@
 import { AdapterRequest } from '@chainlink/types'
-import request from 'supertest'
+import request, { SuperTest, Test } from 'supertest'
 import process from 'process'
 import nock from 'nock'
 import http from 'http'
 import { server as startServer } from '../../src'
 import { mockCoinpaprikaAdapterResponseSuccess, mockEthereumResponseSuccess } from './fixtures'
+import { AddressInfo } from 'net'
 
 let oldEnv: NodeJS.ProcessEnv
 
@@ -15,6 +16,9 @@ beforeAll(() => {
   process.env.ADAPTER_URL_COINPAPRIKA =
     process.env.ADAPTER_URL_COINPAPRIKA || 'http://localhost:8081'
   process.env.API_VERBOSE = true
+  process.env.COINPAPRIKA_ADAPTER_URL =
+    process.env.COINPAPRIKA_ADAPTER_URL || 'http://localhost:8081'
+  process.env.API_VERBOSE = true as unknown as string
   if (process.env.RECORD) {
     nock.recorder.rec()
   }
@@ -34,11 +38,14 @@ afterAll(() => {
 describe('execute', () => {
   const id = '1'
   let server: http.Server
-  const req = request('localhost:8080')
+  let req: SuperTest<Test>
+
   beforeAll(async () => {
     server = await startServer()
+    req = request(`localhost:${(server.address() as AddressInfo).port}`)
     process.env.CACHE_ENABLED = 'false'
   })
+
   afterAll((done) => {
     server.close(done)
   })
